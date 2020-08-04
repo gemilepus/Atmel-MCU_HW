@@ -1,0 +1,122 @@
+C51 COMPILER V9.00   01                                                                    04/06/2016 10:23:59 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 01
+OBJECT MODULE PLACED IN 01.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 01.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /*******KEY4.C**********************
+   2          *動作：在LCD顯示"KEY="，按鍵由LCD顯示4位數
+   3          *接腳：列ROW0=P10,ROW1=P11,ROW2=P12,ROW3=P13,ROW4=P14 
+   4          *      行COL0=P20,COL1=P21,COL2=P22,COL3=P23 
+   5          *      P0=LCD的Data，P16=RS，RW=GND，P17=EN
+   6          *****************************************/
+   7          #include "AT89X52.H"   //暫存器及組態定義
+   8          sfr  Data=0x80;//P0資料BUS輸出
+   9          sbit RS=0x96;  //P16 LCD指令/資料控制,RS=0指令，RS=1資料
+  10                         //LCD讀取/寫入控制,R/W=GND寫入
+  11          sbit EN=0x97;  //P17 LCD致能輸出,EN=0禁能LCD，EN=1致能LCD
+  12          char  Table[16]="U0322310U0322337"; //第一行陣列字元
+  13          void dataout(int k); //按鍵資料輸出
+  14          //char Table_TEMP;  //LCD顯示位置
+  15          int k=0;
+  16          void main()
+  17          {
+  18   1       int deTime=0;
+  19   1       LCD_init();      // 重置及清除LCD
+  20   1       LCD_Cmd(0x80);     //游標由第一行開始顯示   
+  21   1       dataout(k=0);
+  22   1       while(1)   //重覆執行
+  23   1       {
+  24   2          if(deTime!=0){deTime--;}
+  25   2          if((P3_2!=1)&&(deTime==0)){ 
+  26   3              k++;
+  27   3              if(k>=2){k=0;}  
+  28   3              dataout(k);
+  29   3              deTime=18000;
+  30   3          }
+  31   2        }
+  32   1      }
+  33          /***********************************************************
+  34          *函數名稱: dataout
+  35          *功能描述: 按鍵輸出資料送到LCD顯示數字，檢查是否放開按鍵
+  36          *輸入參數：keyout
+  37          ************************************************************/
+  38          void dataout(int k) 
+  39          { 
+  40   1        int j,r,s;
+  41   1        if(k==0){r=0;s=8;}
+  42   1        if(k==1){r=8;s=0;}
+  43   1         for(j=r+0; j<=r+7; j++)
+  44   1         { 
+  45   2           LCD_Data(Table[j]);
+  46   2         }
+  47   1         LCD_Cmd(0xA9);
+  48   1        for(j=s+0; j<=s+7; j++)
+  49   1        {
+  50   2          LCD_Data(Table[j]);
+  51   2        }
+  52   1        LCD_Cmd(0x80);
+  53   1      }
+  54          /***********************************************************
+  55          *函數名稱: LCD_Data
+C51 COMPILER V9.00   01                                                                    04/06/2016 10:23:59 PAGE 2   
+
+  56          *功能描述: 傳送資料到文字型LCD
+  57          *輸入參數：dat
+  58          ************************************************************/
+  59          void LCD_Data(char dat)  //傳送資料到LCD
+  60          {
+  61   1          Data=dat; //資料送到BUS
+  62   1          RS=1;  EN=1;//資料寫入到LCD內
+  63   1          Delay_ms(1);   //LCD等待寫入完成
+  64   1          EN=0;          //禁能LCD    
+  65   1      }
+  66          /***************************************************************
+  67          *函數名稱: LCD_Cmd
+  68          *功能描述: 傳送命令到文字型LCD
+  69          *輸入參數：Cmd
+  70          ************************************************************/
+  71          void LCD_Cmd(unsigned char Cmd) //傳送命令到LCD
+  72          {
+  73   1          Data=Cmd;  //命令送到BUS
+  74   1          RS=0;   EN=1; //命令寫入到LCD內
+  75   1          Delay_ms(1);    //LCD等待寫入完成     
+  76   1          EN=0;           //禁能LCD
+  77   1      }
+  78          /***************************************************************
+  79          *函數名稱: LCD_init
+  80          *功能描述: 啟始化文字型LCD
+  81          *****************************************************************/
+  82          void LCD_init(void)    //LCD的啟始程式  
+  83          {
+  84   1          LCD_Cmd(0x38);/*0011 1000,8bit傳輸,顯示2行,5*7字型
+  85   1                          bit4:DL=1,8bit傳輸,
+  86   1                          bit3:N=1,顯示2行
+  87   1                          bit2:F=0,5*7字型*/    
+  88   1          LCD_Cmd(0x0c);/*0000 1100,顯示幕ON,不顯示游標,游標不閃爍
+  89   1                          bit2:D=1,顯示幕ON
+  90   1                          bit1:C=0,不顯示游標
+  91   1                          bit0:B=0,游標不閃爍*/
+  92   1          LCD_Cmd(0x06);/*0000 0110,//顯示完游標右移,游標移位禁能 
+  93   1                          bit1:I/D=1,顯示完游標右移,
+  94   1                          bit0:S=0,游標移位禁能*/  
+  95   1          LCD_Cmd(0x01); //清除顯示幕  
+  96   1          LCD_Cmd(0x02); //游標回原位  
+  97   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    290    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     18       8
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

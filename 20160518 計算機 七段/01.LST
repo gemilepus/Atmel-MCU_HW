@@ -1,0 +1,244 @@
+C51 COMPILER V9.00   01                                                                    05/18/2016 09:04:13 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 01
+OBJECT MODULE PLACED IN 01.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 01.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "AT89X52.H"
+   2          #include "bin.c"
+   3          //********************** functions ***************************
+   4          //********************** Parameter ***************************
+   5          sfr  Data=0x80;//P0資料
+   6          sfr  LEDScan=0x90;//P1資料
+   7          sfr  CScan=0xA0;//P2資料
+   8          void delay_1ms(int count);
+   9          void LEDTypeLoad(void);
+  10          void LEDTypeError(void);
+  11          char code Column_Scan[4]= {0xFE,0xFD,0xFB,0xF7};
+  12          char code Seg_Row_Data[16]= { 0xC0,0xF9,0xA4,0xB0,0x99,0x92,0x82,0xF8,0x80,0x98,0x88,0x83,0xC6,0xA1,0x86,0
+             -x8E};
+  13          int i=0,TEMP=0,Key_Scan,LED_TEMP[4]={0,0,0,0,},Key_Data=0,Commandkey=0;
+  14          int NumericalA=0,NumericalB=0,TotalNum=0,CommandTemp=0,CommandTemp2=0;
+  15          main() 
+  16          {
+  17   1        int k=0,deTime=0;
+  18   1         while(1){
+  19   2          LEDScan=0xFF;       
+  20   2          Data=Seg_Row_Data[LED_TEMP[i]];
+  21   2          LEDScan=Column_Scan[i];
+  22   2          Key_Scan=CScan&0x0F;
+  23   2          if(deTime!=0)deTime--; 
+  24   2          if((Key_Scan!=0x0F)&&(deTime==0)){    
+  25   3            deTime=5000;
+  26   3            if (Key_Scan==0x07) {
+  27   4                Key_Data=i*4;
+  28   4            }
+  29   3              else if(Key_Scan==0x0B){
+  30   4                Key_Data=i*4+1;
+  31   4            } 
+  32   3              else if(Key_Scan==0x0D){
+  33   4                Key_Data=i*4+2;
+  34   4            } 
+  35   3              else if(Key_Scan==0x0E){
+  36   4                Key_Data=i*4+3;
+  37   4            }
+  38   3            
+  39   3            if(Key_Data<10){
+  40   4               LED_TEMP[3]=LED_TEMP[2];
+  41   4               LED_TEMP[2]=LED_TEMP[1];
+  42   4               LED_TEMP[1]=LED_TEMP[0];
+  43   4               LED_TEMP[0]=Key_Data;  
+  44   4            }
+  45   3            else{
+  46   4              Commandkey=Key_Data;
+  47   4      
+  48   4            }
+  49   3          }  
+  50   2          if(Commandkey!=0){
+  51   3            if(Commandkey!=10){
+  52   4             if(Commandkey==12){// +
+  53   5                 if(CommandTemp!=0){
+  54   6                    NumericalB=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];
+C51 COMPILER V9.00   01                                                                    05/18/2016 09:04:13 PAGE 2   
+
+  55   6                    LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;
+  56   6                    if(CommandTemp==1){
+  57   7                        NumericalA=NumericalA+NumericalB;
+  58   7                    } 
+  59   6                    if(CommandTemp==2){
+  60   7                        NumericalA=NumericalA-NumericalB;
+  61   7                    } 
+  62   6                    if(CommandTemp==3){
+  63   7                        NumericalA=NumericalA*NumericalB;
+  64   7                    }     
+  65   6                    if(CommandTemp==4){
+  66   7                        NumericalA=NumericalA/NumericalB;
+  67   7                    }
+  68   6                    CommandTemp=0;            
+  69   6                 }
+  70   5                 else{
+  71   6                   CommandTemp=1;
+  72   6                   NumericalA=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];  
+  73   6                   LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;            
+  74   6                 }         
+  75   5             }  
+  76   4             if(Commandkey==13){// -
+  77   5                 if(CommandTemp!=0){
+  78   6                    NumericalB=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];
+  79   6                    LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;
+  80   6                    if(CommandTemp==1){
+  81   7                        NumericalA=NumericalA+NumericalB;
+  82   7                    } 
+  83   6                    if(CommandTemp==2){
+  84   7                        NumericalA=NumericalA-NumericalB;
+  85   7                    } 
+  86   6                    if(CommandTemp==3){
+  87   7                        NumericalA=NumericalA*NumericalB;
+  88   7                    }     
+  89   6                    if(CommandTemp==4){
+  90   7                        NumericalA=NumericalA/NumericalB;
+  91   7                    }
+  92   6                    CommandTemp=0;            
+  93   6                 }
+  94   5                 else{
+  95   6                   CommandTemp=2;
+  96   6                   NumericalA=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];  
+  97   6                   LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;            
+  98   6                 }         
+  99   5             }   
+ 100   4             if(Commandkey==14){// *
+ 101   5                 if(CommandTemp!=0){
+ 102   6                    NumericalB=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];
+ 103   6                    LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;
+ 104   6                    if(CommandTemp==1){
+ 105   7                        NumericalA=NumericalA+NumericalB;
+ 106   7                    } 
+ 107   6                    if(CommandTemp==2){
+ 108   7                        NumericalA=NumericalA-NumericalB;
+ 109   7                    } 
+ 110   6                    if(CommandTemp==3){
+ 111   7                        NumericalA=NumericalA*NumericalB;
+ 112   7                    }     
+ 113   6                    if(CommandTemp==4){
+ 114   7                        NumericalA=NumericalA/NumericalB;
+ 115   7                    }
+ 116   6                    CommandTemp=0;            
+C51 COMPILER V9.00   01                                                                    05/18/2016 09:04:13 PAGE 3   
+
+ 117   6                 }
+ 118   5                 else{
+ 119   6                   CommandTemp=3;
+ 120   6                   NumericalA=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];  
+ 121   6                   LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;            
+ 122   6                 }          
+ 123   5             }  
+ 124   4             if(Commandkey==15){//
+ 125   5                if(CommandTemp!=0){
+ 126   6                    NumericalB=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];
+ 127   6                    LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;
+ 128   6                    if(CommandTemp==1){
+ 129   7                        NumericalA=NumericalA+NumericalB;
+ 130   7                    } 
+ 131   6                    if(CommandTemp==2){
+ 132   7                        NumericalA=NumericalA-NumericalB;
+ 133   7                    } 
+ 134   6                    if(CommandTemp==3){
+ 135   7                        NumericalA=NumericalA*NumericalB;
+ 136   7                    }     
+ 137   6                    if(CommandTemp==4){
+ 138   7                        NumericalA=NumericalA/NumericalB;
+ 139   7                    }
+ 140   6                    CommandTemp=0;            
+ 141   6                 }
+ 142   5                 else{
+ 143   6                   CommandTemp=4;
+ 144   6                   NumericalA=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];  
+ 145   6                   LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;            
+ 146   6                 }         
+ 147   5             }  
+ 148   4             if(Commandkey==11){
+ 149   5                NumericalA=NumericalB=TotalNum=CommandTemp=0;
+ 150   5                LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;
+ 151   5            
+ 152   5             }
+ 153   4           }
+ 154   3             if(Commandkey==10){
+ 155   4                 if(CommandTemp!=0){
+ 156   5                    NumericalB=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];
+ 157   5                    if(CommandTemp==1){
+ 158   6                        NumericalA=NumericalA+NumericalB;
+ 159   6                    } 
+ 160   5                    if(CommandTemp==2){
+ 161   6                        NumericalA=NumericalA-NumericalB;
+ 162   6                    } 
+ 163   5                    if(CommandTemp==3){
+ 164   6                        NumericalA=NumericalA*NumericalB;
+ 165   6                    }     
+ 166   5                    if(CommandTemp==4){
+ 167   6                        NumericalA=NumericalA/NumericalB;
+ 168   6                    }
+ 169   5                    CommandTemp=0;            
+ 170   5                 } 
+ 171   4                 TotalNum=NumericalA;
+ 172   4                TotalNum=NumericalA;
+ 173   4                LED_TEMP[3]=TotalNum/1000;
+ 174   4                LED_TEMP[2]=TotalNum%1000 / 100;
+ 175   4                LED_TEMP[1]=TotalNum%100 / 10;
+ 176   4                LED_TEMP[0]=TotalNum%10;   
+ 177   4             }               
+ 178   3             Commandkey=0;
+C51 COMPILER V9.00   01                                                                    05/18/2016 09:04:13 PAGE 4   
+
+ 179   3          }     
+ 180   2          i++;if(i==4)i=0; 
+ 181   2         } 
+ 182   1      }
+ 183          //
+ 184          void LEDTypeLoad(void){
+ 185   1        int f;
+ 186   1        for(f=3;f>=0;f--){
+ 187   2          LEDScan=Column_Scan[f];
+ 188   2              Data=B1111_1011;delay_1ms(100);
+ 189   2              Data=B1111_1101;delay_1ms(100);
+ 190   2              Data=B1111_1110;delay_1ms(100);
+ 191   2              Data=B1101_1111;delay_1ms(100);
+ 192   2              Data=B1110_1111;delay_1ms(100);
+ 193   2              Data=B1111_1111;delay_1ms(100);
+ 194   2              Data=B0111_1111;delay_1ms(100); 
+ 195   2           }
+ 196   1      }
+ 197          /*void LEDTypeError(void){
+ 198            char code Errortype[13]={0xFF,0xFF,0xFF,0xFF,0x86,0xAF,0xAF,0xA3,0xAF,0xFF,0xFF,0xFF,0xFF};
+ 199            int i=0,j=0,k=3,deTime1=0;
+ 200            while(1) {
+ 201              LEDScan=0xFF;
+ 202              Data=Errortype[j+k];
+ 203              LEDScan=Column_Scan[i];
+ 204              deTime1++;
+ 205              if(deTime1==6000){
+ 206                 j++;
+ 207                 deTime1=0; 
+ 208              }
+ 209              if(j==10)break;
+ 210              i++;if(i==4)i=0;
+ 211              k--;if(k==-1)k=3;
+ 212            }
+ 213          }*/
+ 214          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1830    ----
+   CONSTANT SIZE    =     20    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     28       6
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

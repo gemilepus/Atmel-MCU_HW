@@ -1,0 +1,274 @@
+C51 COMPILER V9.00   01                                                                    05/25/2016 11:24:50 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 01
+OBJECT MODULE PLACED IN 01.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 01.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "AT89X52.H"
+   2          #include "bin.c"
+   3          //********************** functions ***************************
+   4          //********************** Parameter ***************************
+   5          sfr  Data=0x80;//P0資料
+   6          sfr  LEDScan=0x90;//P1資料
+   7          sfr  CScan=0xA0;//P2資料
+   8          char code Column_Scan[4]= {0xFE,0xFD,0xFB,0xF7};
+   9          char code Seg_Row_Data[16]= { 0xC0,0xF9,0xA4,0xB0,0x99,0x92,0x82,0xF8,0x80,0x98,0x88,0x83,0xC6,0xA1,0x86,0
+             -x8E};
+  10          int i=0,TEMP=0,Key_Scan,LED_TEMP[4]={0,0,0,0,},Key_Data=0,Commandkey=0,deTime=0;
+  11          int NumericalA=0,NumericalB=0,TotalNum=0,CommandTemp=0,Comadd=0;
+  12          sbit RS=0x96;  //P16 LCD指令/資料控制,RS=0指令，RS=1資料
+  13                         //LCD讀取/寫入控制,R/W=GND寫入
+  14          sbit EN=0x97;  //P17 LCD致能輸出,EN=0禁能LCD，EN=1致能LCD
+  15          main() 
+  16          {
+  17   1        LCD_init();       // 重置及清除LCD
+  18   1        LCD_Cmd(0x80);     //游標由第一行開始顯示    
+  19   1         while(1){
+  20   2          LEDScan=0xFF;       
+  21   2          Data=Seg_Row_Data[LED_TEMP[i]];
+  22   2          LEDScan=Column_Scan[i];
+  23   2          Key_Scan=CScan&0x0F;
+  24   2          if(deTime!=0)deTime--; 
+  25   2          if((Key_Scan!=0x0F)&&(deTime==0)){    
+  26   3            deTime=5000;
+  27   3            if (Key_Scan==0x07) {
+  28   4                Key_Data=i*4;
+  29   4            }
+  30   3              else if(Key_Scan==0x0B){
+  31   4                Key_Data=i*4+1;
+  32   4            } 
+  33   3              else if(Key_Scan==0x0D){
+  34   4                Key_Data=i*4+2;
+  35   4            } 
+  36   3              else if(Key_Scan==0x0E){
+  37   4                Key_Data=i*4+3;
+  38   4            }
+  39   3            
+  40   3            if(Key_Data<10){
+  41   4               LED_TEMP[3]=LED_TEMP[2];
+  42   4               LED_TEMP[2]=LED_TEMP[1];
+  43   4               LED_TEMP[1]=LED_TEMP[0];
+  44   4               LED_TEMP[0]=Key_Data;
+  45   4               LCD_Data(Key_Data+'0');        
+  46   4            }
+  47   3            else{
+  48   4              Commandkey=Key_Data;
+  49   4      
+  50   4            }
+  51   3          }  
+  52   2          if(Commandkey!=0){
+  53   3            if(Commandkey!=10){
+  54   4             if(Commandkey==12){// +
+C51 COMPILER V9.00   01                                                                    05/25/2016 11:24:50 PAGE 2   
+
+  55   5               LCD_Data('+'); 
+  56   5                 if(CommandTemp!=0){
+  57   6                    NumericalB=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];
+  58   6                    LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;
+  59   6                    if(CommandTemp==1){
+  60   7                        NumericalA=NumericalA+NumericalB;
+  61   7                    } 
+  62   6                    if(CommandTemp==2){
+  63   7                        NumericalA=NumericalA-NumericalB;
+  64   7                    } 
+  65   6                    if(CommandTemp==3){
+  66   7                        NumericalA=NumericalA*NumericalB;
+  67   7                    }     
+  68   6                    if(CommandTemp==4){
+  69   7                        NumericalA=NumericalA/NumericalB;
+  70   7                    }
+  71   6                    CommandTemp=1;            
+  72   6                 }
+  73   5                 else{
+  74   6                   CommandTemp=1;
+  75   6                   NumericalA=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];  
+  76   6                   LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;            
+  77   6                 }         
+  78   5             }  
+  79   4             if(Commandkey==13){// -
+  80   5                LCD_Data('-');  
+  81   5                 if(CommandTemp!=0){
+  82   6                    NumericalB=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];
+  83   6                    LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;
+  84   6                    if(CommandTemp==1){
+  85   7                        NumericalA=NumericalA+NumericalB;
+  86   7                    }
+  87   6                    if(CommandTemp==2){
+  88   7                        NumericalA=NumericalA-NumericalB;
+  89   7                    } 
+  90   6                    if(CommandTemp==3){
+  91   7                        NumericalA=NumericalA*NumericalB;
+  92   7                    }     
+  93   6                    if(CommandTemp==4){
+  94   7                        NumericalA=NumericalA/NumericalB;
+  95   7                    }
+  96   6                    CommandTemp=2;            
+  97   6                 }
+  98   5                 else{
+  99   6                   CommandTemp=2;
+ 100   6                   NumericalA=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];  
+ 101   6                   LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;            
+ 102   6                 }         
+ 103   5             }   
+ 104   4             if(Commandkey==14){// *
+ 105   5               LCD_Data('*'); 
+ 106   5                 if(CommandTemp!=0){
+ 107   6                    NumericalB=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];
+ 108   6                    LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;
+ 109   6                    if(CommandTemp==1){
+ 110   7                        NumericalA=NumericalA+NumericalB;
+ 111   7                    } 
+ 112   6                    if(CommandTemp==2){
+ 113   7                        NumericalA=NumericalA-NumericalB;
+ 114   7                    } 
+ 115   6                    if(CommandTemp==3){
+ 116   7                        NumericalA=NumericalA*NumericalB;
+C51 COMPILER V9.00   01                                                                    05/25/2016 11:24:50 PAGE 3   
+
+ 117   7                    }     
+ 118   6                    if(CommandTemp==4){
+ 119   7                        NumericalA=NumericalA/NumericalB;
+ 120   7                    }
+ 121   6                    CommandTemp=3;            
+ 122   6                 }
+ 123   5                 else{
+ 124   6                   CommandTemp=3;
+ 125   6                   NumericalA=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];  
+ 126   6                   LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;            
+ 127   6                 }          
+ 128   5             }  
+ 129   4             if(Commandkey==15){//
+ 130   5               LCD_Data('/'); 
+ 131   5                if(CommandTemp!=0){
+ 132   6                    NumericalB=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];
+ 133   6                    LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;
+ 134   6                    if(CommandTemp==1){
+ 135   7                        NumericalA=NumericalA+NumericalB;
+ 136   7                    } 
+ 137   6                    if(CommandTemp==2){
+ 138   7                        NumericalA=NumericalA-NumericalB;
+ 139   7                    } 
+ 140   6                    if(CommandTemp==3){
+ 141   7                        NumericalA=NumericalA*NumericalB;
+ 142   7                    }   
+ 143   6                    if(CommandTemp==4){
+ 144   7                        NumericalA=NumericalA/NumericalB;
+ 145   7                    }
+ 146   6                    CommandTemp=4;            
+ 147   6                 }
+ 148   5                 else{
+ 149   6                   CommandTemp=4;
+ 150   6                   NumericalA=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];  
+ 151   6                   LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;            
+ 152   6                 }         
+ 153   5             }  
+ 154   4             if(Commandkey==11){
+ 155   5                NumericalA=NumericalB=TotalNum=CommandTemp=0;
+ 156   5                LED_TEMP[0]=LED_TEMP[1]=LED_TEMP[2]=LED_TEMP[3]=0;
+ 157   5                  LCD_Cmd(0x01); //清除顯示幕  
+ 158   5                  LCD_Cmd(0x02); //游標回原位 
+ 159   5            
+ 160   5             }
+ 161   4           }
+ 162   3             if(Commandkey==10){
+ 163   4                  
+ 164   4                 if(CommandTemp!=0){
+ 165   5                    NumericalB=LED_TEMP[3]*1000+LED_TEMP[2]*100+LED_TEMP[1]*10+LED_TEMP[0];
+ 166   5                    if(CommandTemp==1){
+ 167   6                        NumericalA=NumericalA+NumericalB;
+ 168   6                    } 
+ 169   5                    if(CommandTemp==2){
+ 170   6                        NumericalA=NumericalA-NumericalB;
+ 171   6                    } 
+ 172   5                    if(CommandTemp==3){
+ 173   6                        NumericalA=NumericalA*NumericalB;
+ 174   6                    }     
+ 175   5                    if(CommandTemp==4){
+ 176   6                        NumericalA=NumericalA/NumericalB;
+ 177   6                    }
+ 178   5                    CommandTemp=0;            
+C51 COMPILER V9.00   01                                                                    05/25/2016 11:24:50 PAGE 4   
+
+ 179   5                 } 
+ 180   4                 TotalNum=NumericalA;
+ 181   4                 LCD_Cmd(0xA9);
+ 182   4                 LCD_Data('=');
+ 183   4                 if(TotalNum<0){LCD_Data('-');TotalNum=TotalNum*(-1);}
+ 184   4                 if(TotalNum>=1000){LCD_Data(TotalNum/1000+'0');}
+ 185   4                 if(TotalNum>=100){LCD_Data(TotalNum%1000 / 100+'0');}
+ 186   4                 if(TotalNum>=10){LCD_Data(TotalNum%100 / 10+'0');} 
+ 187   4                 LCD_Data(TotalNum%10+'0'); 
+ 188   4                 LED_TEMP[3]=TotalNum/1000;
+ 189   4                 LED_TEMP[2]=TotalNum%1000 / 100;
+ 190   4                 LED_TEMP[1]=TotalNum%100 / 10;
+ 191   4                 LED_TEMP[0]=TotalNum%10;   
+ 192   4             }               
+ 193   3             Commandkey=0;
+ 194   3          }     
+ 195   2          i++;if(i==4)i=0; 
+ 196   2         } 
+ 197   1      }
+ 198          
+ 199          /***********************************************************
+ 200          *函數名稱: LCD_Data
+ 201          *功能描述: 傳送資料到文字型LCD
+ 202          *輸入參數：dat
+ 203          ************************************************************/
+ 204          void LCD_Data(char dat)  //傳送資料到LCD
+ 205          {
+ 206   1          Data=dat; //資料送到BUS
+ 207   1          RS=1;  EN=1;//資料寫入到LCD內
+ 208   1          Delay_ms(1);   //LCD等待寫入完成
+ 209   1          EN=0;          //禁能LCD    
+ 210   1      }
+ 211          /***************************************************************
+ 212          *函數名稱: LCD_Cmd
+ 213          *功能描述: 傳送命令到文字型LCD
+ 214          *輸入參數：Cmd
+ 215          ************************************************************/
+ 216          void LCD_Cmd(unsigned char Cmd) //傳送命令到LCD
+ 217          {
+ 218   1          Data=Cmd;  //命令送到BUS
+ 219   1          RS=0;   EN=1; //命令寫入到LCD內
+ 220   1          Delay_ms(1);    //LCD等待寫入完成     
+ 221   1          EN=0;           //禁能LCD
+ 222   1      }
+ 223          /***************************************************************
+ 224          *函數名稱: LCD_init
+ 225          *功能描述: 啟始化文字型LCD
+ 226          *****************************************************************/
+ 227          void LCD_init(void)    //LCD的啟始程式  
+ 228          {
+ 229   1          LCD_Cmd(0x38);/*0011 1000,8bit傳輸,顯示2行,5*7字型
+ 230   1                          bit4:DL=1,8bit傳輸,
+ 231   1                          bit3:N=1,顯示2行
+ 232   1                          bit2:F=0,5*7字型*/    
+ 233   1          LCD_Cmd(0x0c);/*0000 1100,顯示幕ON,不顯示游標,游標不閃爍
+ 234   1                          bit2:D=1,顯示幕ON
+ 235   1                          bit1:C=0,不顯示游標
+ 236   1                          bit0:B=0,游標不閃爍*/
+ 237   1          LCD_Cmd(0x06);/*0000 0110,//顯示完游標右移,游標移位禁能 
+ 238   1                          bit1:I/D=1,顯示完游標右移,
+ 239   1                          bit0:S=0,游標移位禁能*/  
+ 240   1          LCD_Cmd(0x01); //清除顯示幕  
+C51 COMPILER V9.00   01                                                                    05/25/2016 11:24:50 PAGE 5   
+
+ 241   1          LCD_Cmd(0x02); //游標回原位  
+ 242   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1960    ----
+   CONSTANT SIZE    =     20    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     30    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
